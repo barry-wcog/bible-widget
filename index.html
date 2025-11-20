@@ -79,7 +79,12 @@
 <script>
 async function loadPassage() {
   const translation = document.getElementById("translation").value;
-  const book = document.getElementById("book").value.toUpperCase();
+
+  // Fix book casing
+  const rawBook = document.getElementById("book").value.trim();
+  const book =
+    rawBook.charAt(0).toUpperCase() + rawBook.slice(1).toLowerCase();
+
   const chapter = document.getElementById("chapter").value;
 
   const url = `https://bible.helloao.org/api/${translation}/${book}/${chapter}.json`;
@@ -88,7 +93,7 @@ async function loadPassage() {
   versesDiv.innerHTML = "<em>Loading…</em>";
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { mode: "cors" });
     if (!response.ok) throw new Error("Passage not found.");
 
     const data = await response.json();
@@ -120,4 +125,3 @@ async function loadPassage() {
 
 </body>
 </html>
-
