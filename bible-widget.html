@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bible Passage Viewer</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    margin: 0;
+    background: #f9f9f9;
+  }
+
+  h2 {
+    margin-top: 0;
+    font-size: 20px;
+  }
+
+  #controls {
+    background: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.2);
+  }
+
+  label {
+    font-weight: bold;
+    margin-right: 5px;
+  }
+
+  select, input, button {
+    margin-top: 8px;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  #verses {
+    margin-top: 18px;
+    line-height: 1.5;
+  }
+
+  .verse {
+    margin-bottom: 6px;
+  }
+
+  .vnum {
+    font-weight: bold;
+    margin-right: 4px;
+  }
+</style>
+</head>
+
+<body>
+
+<h2>Online Bible Viewer</h2>
+
+<div id="controls">
+  <label>Translation:</label>
+  <select id="translation">
+    <option value="BSB">BSB – Berean Standard Bible</option>
+    <option value="KJV">KJV – King James Version</option>
+    <option value="WEB">WEB – World English Bible</option>
+  </select>
+
+  <br>
+
+  <label>Book:</label>
+  <input id="book" value="John">
+
+  <label>Chapter:</label>
+  <input id="chapter" type="number" value="1" min="1">
+
+  <button onclick="loadPassage()">Load</button>
+</div>
+
+<div id="verses">Enter a passage and click Load.</div>
+
+<script>
+async function loadPassage() {
+  const translation = document.getElementById("translation").value;
+  const book = document.getElementById("book").value.toUpperCase();
+  const chapter = document.getElementById("chapter").value;
+
+  const url = `https://bible.helloao.org/api/${translation}/${book}/${chapter}.json`;
+
+  const versesDiv = document.getElementById("verses");
+  versesDiv.innerHTML = "<em>Loading…</em>";
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Passage not found.");
+
+    const data = await response.json();
+    versesDiv.innerHTML = "";
+
+    data.chapter.content.forEach(entry => {
+      if (entry.type === "verse") {
+        const div = document.createElement("div");
+        div.className = "verse";
+
+        const vnum = document.createElement("span");
+        vnum.className = "vnum";
+        vnum.textContent = entry.number;
+
+        const text = document.createElement("span");
+        text.textContent = " " + entry.content.join(" ");
+
+        div.appendChild(vnum);
+        div.appendChild(text);
+
+        versesDiv.appendChild(div);
+      }
+    });
+  } catch (err) {
+    versesDiv.innerHTML = "<strong>Error:</strong> " + err.message;
+  }
+}
+</script>
+
+</body>
+</html>
