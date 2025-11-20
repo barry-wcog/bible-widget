@@ -1,153 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Bible Passage Viewer</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 15px;
-    margin: 0;
-    background: #f9f9f9;
-  }
-
-  h2 {
-    margin-top: 0;
-    font-size: 20px;
-  }
-
-  #controls {
-    background: #fff;
-    padding: 12px;
-    border-radius: 8px;
-    box-shadow: 0 0 4px rgba(0,0,0,0.2);
-    margin-bottom: 15px;
-  }
-
-  label {
-    font-weight: bold;
-    margin-right: 5px;
-  }
-
-  select, input, button {
-    margin-top: 8px;
-    padding: 6px;
-    font-size: 14px;
-  }
-
-  #verses {
-    line-height: 1.5;
-  }
-
-  .verse {
-    margin-bottom: 6px;
-  }
-
-  .vnum {
-    font-weight: bold;
-    margin-right: 4px;
-  }
-
-  @media(max-width:600px){
-    #controls { display:flex; flex-direction:column; }
-    select, input, button { width: 100%; margin-top:6px; }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>Bible Passage Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 15px; margin: 0; background: #f9f9f9; }
+    h2 { margin-top: 0; font-size: 20px; }
+    #controls { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,0.2); margin-bottom: 15px; }
+    label { font-weight: bold; margin-right: 5px; }
+    select, input, button { margin-top: 8px; padding: 6px; font-size: 14px; }
+    #verses { line-height: 1.5; }
+    .verse { margin-bottom: 6px; }
+    .vnum { font-weight: bold; margin-right: 4px; }
+    @media(max-width:600px){
+      #controls { display:flex; flex-direction:column; }
+      select, input, button { width: 100%; margin-top:6px; }
+    }
+  </style>
 </head>
-
 <body>
 
-<h2>Bible Passage Viewer</h2>
+  <h2>Bible Passage Viewer</h2>
 
-<div id="controls">
-  <label>Translation:</label>
-  <select id="translation">
-    <option value="BSB">BSB – Berean Standard Bible</option>
-    <option value="KJV">KJV – King James Version</option>
-    <option value="WEB">WEB – World English Bible</option>
-  </select>
+  <div id="controls">
+    <label>Translation:</label>
+    <select id="translation">
+      <option value="BSB">BSB – Berean Standard Bible</option>
+      <option value="KJV">KJV – King James Version</option>
+      <option value="WEB">WEB – World English Bible</option>
+    </select>
 
-  <br>
+    <br>
 
-  <label>Book:</label>
-  <select id="book"></select>
+    <label>Book:</label>
+    <select id="book"></select>
 
-  <label>Chapter:</label>
-  <input id="chapter" type="number" value="1" min="1">
+    <label>Chapter:</label>
+    <input id="chapter" type="number" value="1" min="1">
 
-  <button onclick="loadPassage()">Load</button>
-</div>
+    <button onclick="loadPassage()">Load</button>
+  </div>
 
-<div id="verses">Select a book and chapter, then click Load.</div>
+  <div id="verses">Select a book and chapter, then click Load.</div>
 
-<script>
-// OSIS book codes
-const BOOK_CODES = {
-  "Genesis":"GEN","Exodus":"EXO","Leviticus":"LEV","Numbers":"NUM","Deuteronomy":"DEU",
-  "Joshua":"JOS","Judges":"JDG","Ruth":"RUT","1 Samuel":"1SA","2 Samuel":"2SA",
-  "1 Kings":"1KI","2 Kings":"2KI","1 Chronicles":"1CH","2 Chronicles":"2CH","Ezra":"EZR",
-  "Nehemiah":"NEH","Esther":"EST","Job":"JOB","Psalms":"PSA","Proverbs":"PRO",
-  "Ecclesiastes":"ECC","Song of Solomon":"SNG","Isaiah":"ISA","Jeremiah":"JER","Lamentations":"LAM",
-  "Ezekiel":"EZK","Daniel":"DAN","Hosea":"HOS","Joel":"JOL","Amos":"AMO","Obadiah":"OBA",
-  "Jonah":"JON","Micah":"MIC","Nahum":"NAM","Habakkuk":"HAB","Zephaniah":"ZEP",
-  "Haggai":"HAG","Zechariah":"ZEC","Malachi":"MAL",
-  "Matthew":"MAT","Mark":"MRK","Luke":"LUK","John":"JHN","Acts":"ACT","Romans":"ROM",
-  "1 Corinthians":"1CO","2 Corinthians":"2CO","Galatians":"GAL","Ephesians":"EPH",
-  "Philippians":"PHP","Colossians":"COL","1 Thessalonians":"1TH","2 Thessalonians":"2TH",
-  "1 Timothy":"1TI","2 Timothy":"2TI","Titus":"TIT","Philemon":"PHM","Hebrews":"HEB",
-  "James":"JAS","1 Peter":"1PE","2 Peter":"2PE","1 John":"1JN","2 John":"2JN","3 John":"3JN",
-  "Jude":"JUD","Revelation":"REV"
-};
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const BOOK_CODES = {
+        "Genesis":"GEN","Exodus":"EXO","Leviticus":"LEV","Numbers":"NUM","Deuteronomy":"DEU",
+        "Joshua":"JOS","Judges":"JDG","Ruth":"RUT","1 Samuel":"1SA","2 Samuel":"2SA",
+        "1 Kings":"1KI","2 Kings":"2KI","1 Chronicles":"1CH","2 Chronicles":"2CH","Ezra":"EZR",
+        "Nehemiah":"NEH","Esther":"EST","Job":"JOB","Psalms":"PSA","Proverbs":"PRO",
+        "Ecclesiastes":"ECC","Song of Solomon":"SNG","Isaiah":"ISA","Jeremiah":"JER","Lamentations":"LAM",
+        "Ezekiel":"EZK","Daniel":"DAN","Hosea":"HOS","Joel":"JOL","Amos":"AMO","Obadiah":"OBA",
+        "Jonah":"JON","Micah":"MIC","Nahum":"NAM","Habakkuk":"HAB","Zephaniah":"ZEP",
+        "Haggai":"HAG","Zechariah":"ZEC","Malachi":"MAL",
+        "Matthew":"MAT","Mark":"MRK","Luke":"LUK","John":"JHN","Acts":"ACT","Romans":"ROM",
+        "1 Corinthians":"1CO","2 Corinthians":"2CO","Galatians":"GAL","Ephesians":"EPH",
+        "Philippians":"PHP","Colossians":"COL","1 Thessalonians":"1TH","2 Thessalonians":"2TH",
+        "1 Timothy":"1TI","2 Timothy":"2TI","Titus":"TIT","Philemon":"PHM","Hebrews":"HEB",
+        "James":"JAS","1 Peter":"1PE","2 Peter":"2PE","1 John":"1JN","2 John":"2JN","3 John":"3JN",
+        "Jude":"JUD","Revelation":"REV"
+      };
 
-// Populate the Book dropdown
-const bookSelect = document.getElementById("book");
-Object.keys(BOOK_CODES).forEach(bookName => {
-  const option = document.createElement("option");
-  option.value = BOOK_CODES[bookName];
-  option.textContent = bookName;
-  bookSelect.appendChild(option);
-});
-
-// Load passage
-async function loadPassage(){
-  const translation = document.getElementById("translation").value;
-  const bookCode = document.getElementById("book").value;
-  const chapter = document.getElementById("chapter").value;
-  const versesDiv = document.getElementById("verses");
-
-  const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://bible.helloao.org/api/${translation}/${bookCode}/${chapter}.json`)}`;
-
-  versesDiv.innerHTML = "<em>Loading…</em>";
-
-  try{
-    const response = await fetch(apiUrl);
-    if(!response.ok) throw new Error("Passage not found.");
-
-    const data = await response.json();
-    versesDiv.innerHTML = "";
-
-    data.chapter.content.forEach(entry=>{
-      if(entry.type==="verse"){
-        const div = document.createElement("div");
-        div.className="verse";
-
-        const vnum = document.createElement("span");
-        vnum.className="vnum";
-        vnum.textContent = entry.number;
-
-        const text = document.createElement("span");
-        text.textContent = " " + entry.content.join(" ");
-
-        div.appendChild(vnum);
-        div.appendChild(text);
-        versesDiv.appendChild(div);
+      const bookSelect = document.getElementById("book");
+      for (const [name, code] of Object.entries(BOOK_CODES)) {
+        const option = document.createElement("option");
+        option.value = code;
+        option.textContent = name;
+        bookSelect.appendChild(option);
       }
+
+      window.loadPassage = async function() {
+        const translation = document.getElementById("translation").value;
+        const bookCode = bookSelect.value;
+        const chapter = document.getElementById("chapter").value;
+        const versesDiv = document.getElementById("verses");
+
+        const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://bible.helloao.org/api/${translation}/${bookCode}/${chapter}.json`)}`;
+
+        versesDiv.innerHTML = "<em>Loading…</em>";
+
+        try {
+          const response = await fetch(apiUrl);
+          if (!response.ok) throw new Error("Passage not found.");
+
+          const data = await response.json();
+          versesDiv.innerHTML = "";
+
+          data.chapter.content.forEach(entry => {
+            if (entry.type === "verse") {
+              const div = document.createElement("div");
+              div.className = "verse";
+              const vnum = document.createElement("span");
+              vnum.className = "vnum";
+              vnum.textContent = entry.number;
+              const text = document.createElement("span");
+              text.textContent = " " + entry.content.join(" ");
+              div.appendChild(vnum);
+              div.appendChild(text);
+              versesDiv.appendChild(div);
+            }
+          });
+        } catch (err) {
+          versesDiv.innerHTML = "<strong>Error:</strong> " + err.message;
+        }
+      };
     });
-  }catch(err){
-    versesDiv.innerHTML = "<strong>Error:</strong> "+err.message;
-  }
-}
-</script>
+  </script>
 
 </body>
 </html>
