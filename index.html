@@ -95,7 +95,16 @@
               vnum.className = "vnum";
               vnum.textContent = entry.number;
               const text = document.createElement("span");
-              text.textContent = " " + entry.content.join(" ");
+
+              // Flatten content array
+              const verseText = entry.content.map(item => {
+                if (typeof item === "string") return item;
+                if (typeof item === "object" && item.text) return item.text;
+                return ""; // fallback for unexpected objects
+              }).join(" ");
+              
+              text.textContent = " " + verseText;
+
               div.appendChild(vnum);
               div.appendChild(text);
               versesDiv.appendChild(div);
@@ -110,3 +119,4 @@
 
 </body>
 </html>
+
