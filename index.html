@@ -8,13 +8,13 @@
   h2 { margin-top: 0; font-size: 20px; }
   #controls { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,0.2); margin-bottom: 15px; }
   label { font-weight: bold; margin-right: 5px; }
-  select, input, button { margin-top: 8px; padding: 6px; font-size: 14px; }
+  select, button { margin-top: 8px; padding: 6px; font-size: 14px; }
   #verses { line-height: 1.5; }
   .verse { margin-bottom: 6px; }
   .vnum { font-weight: bold; margin-right: 4px; }
   @media(max-width:600px){
     #controls { display:flex; flex-direction:column; }
-    select, input, button { width: 100%; margin-top:6px; }
+    select, button { width: 100%; margin-top:6px; }
   }
 </style>
 </head>
@@ -42,12 +42,11 @@
   <button onclick="loadPassage()">Load</button>
 </div>
 
-<div id="verses">Select a book and chapter, then click Load.</div>
+<div id="verses">Loading John 3…</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-  // OSIS-style book codes and max chapters
   const BOOKS = {
     "Genesis": { code: "GEN", chapters: 50 },
     "Exodus": { code: "EXO", chapters: 40 },
@@ -128,7 +127,10 @@ document.addEventListener("DOMContentLoaded", function() {
     bookSelect.appendChild(option);
   });
 
-  // Function to populate Chapter dropdown based on selected book
+  // Set default book to John
+  bookSelect.value = BOOKS["John"].code;
+
+  // Populate Chapter dropdown based on selected book
   function populateChapters() {
     const bookName = bookSelect.options[bookSelect.selectedIndex].text;
     const maxCh = BOOKS[bookName].chapters;
@@ -139,28 +141,25 @@ document.addEventListener("DOMContentLoaded", function() {
       opt.textContent = i;
       chapterSelect.appendChild(opt);
     }
+    // Default to chapter 3 if John
+    if(bookName === "John") chapterSelect.value = 3;
   }
 
-  // Populate chapters initially for the first book
   populateChapters();
-
-  // Update chapters whenever book changes
   bookSelect.addEventListener("change", populateChapters);
 
-  // Recursive flatten function for verse content
   function flattenContent(arr) {
     return arr.map(item => {
-      if (typeof item === "string") return item;
-      if (typeof item === "object") {
-        if (item.text) return item.text;
-        if (item.content) return flattenContent(item.content).join("");
+      if(typeof item==="string") return item;
+      if(typeof item==="object"){
+        if(item.text) return item.text;
+        if(item.content) return flattenContent(item.content).join("");
       }
       return "";
     }).join(" ");
   }
 
-  // Load passage function
-  window.loadPassage = async function() {
+  async function loadPassage() {
     const translation = document.getElementById("translation").value;
     const bookCode = bookSelect.value;
     const chapter = chapterSelect.value;
@@ -178,16 +177,16 @@ document.addEventListener("DOMContentLoaded", function() {
       versesDiv.innerHTML = "";
 
       data.chapter.content.forEach(entry => {
-        if(entry.type === "verse") {
+        if(entry.type==="verse"){
           const div = document.createElement("div");
-          div.className = "verse";
+          div.className="verse";
 
           const vnum = document.createElement("span");
-          vnum.className = "vnum";
+          vnum.className="vnum";
           vnum.textContent = entry.number;
 
           const text = document.createElement("span");
-          text.textContent = " " + flattenContent(entry.content);
+          text.textContent = " "+flattenContent(entry.content);
 
           div.appendChild(vnum);
           div.appendChild(text);
@@ -195,9 +194,15 @@ document.addEventListener("DOMContentLoaded", function() {
         }
       });
     } catch(err) {
-      versesDiv.innerHTML = "<strong>Error:</strong> " + err.message;
+      versesDiv.innerHTML = "<strong>Error:</strong> "+err.message;
     }
-  };
+  }
+
+  // Expose loadPassage globally
+  window.loadPassage = loadPassage;
+
+  // Auto-load John 3
+  loadPassage();
 
 });
 </script>
