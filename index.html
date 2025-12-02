@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   async function loadPassage() {
     // FIX: Convert the translation value to lowercase before using it in the URL.
-    const translation = document.getElementById("translation").value.toLowerCase();
+    const translation = document.getElementById("translation");
     
     const bookCode = bookSelect.value;
     const chapter = chapterSelect.value;
@@ -212,3 +212,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
