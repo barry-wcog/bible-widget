@@ -26,9 +26,10 @@
 <div id="controls">
   <label>Translation:</label>
   <select id="translation">
-        <option value="asv">ASV – American Standard Version</option>
-    <option value="kjv">KJV – King James Version</option>
-    <option value="web">WEB – World English Bible</option>
+      <option value="BSB">BSB – Berean Standard Bible</option>
+      <option value="asv">ASV – American Standard Version</option>
+      <option value="kjv">KJV – King James Version</option>
+      <option value="web">WEB – World English Bible</option>
   </select>
 
   <br>
@@ -152,62 +153,107 @@ document.addEventListener("DOMContentLoaded", function() {
   bookSelect.addEventListener("change", populateChapters);
 
 
-  async function loadPassage() {
-    const translation = document.getElementById("translation").value; // 'kjv', 'web', 'asv'
-    const bookName = bookSelect.value;
-    const chapter = chapterSelect.value;
-    const versesDiv = document.getElementById("verses");
-
-    // --- NEW API URL CONSTRUCTION (bible-api.com) ---
-    // Uses passage format: John 3
-    const passage = `${bookName} ${chapter}`;
-    const apiUrl = `https://bible-api.com/${encodeURIComponent(passage)}?translation=${translation}`;
+  function flattenContent(arr) {
+    return arr.map(item => {
+      if(typeof item==="string") return item;
+      if(typeof item==="object"){
+        if(item.text) return item.text;
+        if(item.content) return flattenContent(item.content).join("");
+      }
+      return "";
+    }).join(" ");
+  }
+  // ... then the loadPassage function just replaced ...
     
-    versesDiv.innerHTML = "<em>Loading…</em>";
-
-    try {
-      const response = await fetch(apiUrl);
-      if(!response.ok) {
-        // If the API returns a 404 or other error, its error response is not always JSON.
-        // We'll read it as text to find the error message.
-        const errorText = await response.text();
-        throw new Error(`Passage not found or API error: ${response.status} - ${errorText.substring(0, 50)}...`);
+  async function loadPassage() {
+    const translation = document.getElementById("translation").value;
+    const bookName = bookSelect.value;
+    const chapter = chapterSelect.value;
+    const versesDiv = document.getElementById("verses");
+    
+    // 1. Determine which API to use based on translation
+    let apiUrl;
+    
+    if (translation === 'BSB') {
+        // Use the old API structure for BSB (assuming it's stable again).
+        // Using uppercase 'BSB' which worked previously.
+        const bookCode = BOOKS[bookName].code;
+        apiUrl = `https://bible.helloao.org/api/${translation}/${bookCode}/${chapter}.json`;
+        
+    } else {
+        // Use the stable bible-api.com for KJV, WEB, ASV.
+        // Requires lowercase identifiers and passage format (e.g., "John 3").
+        const passage = `${bookName} ${chapter}`;
+        apiUrl = `https://bible-api.com/${encodeURIComponent(passage)}?translation=${translation.toLowerCase()}`;
     }
 
-      const data = await response.json();
-      versesDiv.innerHTML = "";
-      
-      // Check if API returned an error message within the JSON structure
-      if (data.error) {
-        throw new Error(data.error);
-      }
+    versesDiv.innerHTML = "<em>Loading…</em>";
 
-      data.verses.forEach(verse => {
-          const div = document.createElement("div");
-          div.className="verse";
+    try {
+        const response = await fetch(apiUrl);
+        if(!response.ok) {
+            throw new Error(`API returned status ${response.status} for ${translation}.`);
+        }
 
-          const vnum = document.createElement("span");
-          vnum.className="vnum";
-          vnum.textContent = verse.verse;
+        const data = await response.json();
+        versesDiv.innerHTML = "";
+        
+        // 2. Adjust data parsing based on the API used
+        if (translation === 'BSB') {
+            // Old parsing logic for helloao.org
+            data.chapter.content.forEach(entry => {
+                if(entry.type==="verse"){
+                    const div = document.createElement("div");
+                    div.className="verse";
 
-          const text = document.createElement("span");
-          // Remove leading space from text if present
-          text.textContent = " " + verse.text.trim(); 
+                    const vnum = document.createElement("span");
+                    vnum.className="vnum";
+                    vnum.textContent = entry.number;
 
-          div.appendChild(vnum);
-          div.appendChild(text);
-          versesDiv.appendChild(div);
-      });
-      
-      // Add the reference (e.g., John 3:1-10 KJV)
-      const reference = document.createElement("p");
-      reference.innerHTML = `<em>${data.reference} (${translation.toUpperCase()})</em>`;
-      versesDiv.appendChild(reference);
-      
-    } catch(err) {
-      versesDiv.innerHTML = `<strong>Error:</strong> Failed to load passage. Please check the Book/Chapter selection. Details: ${err.message}`;
-    }
-  }
+                    const text = document.createElement("span");
+                    text.textContent = " " + flattenContent(entry.content);
+
+                    div.appendChild(vnum);
+                    div.appendChild(text);
+                    versesDiv.appendChild(div);
+                }
+            });
+            // Optional: Add reference for BSB
+            const reference = document.createElement("p");
+            reference.innerHTML = `<em>${bookName} ${chapter} (${translation})</em>`;
+            versesDiv.appendChild(reference);
+            
+        } else {
+            // New parsing logic for bible-api.com
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            data.verses.forEach(verse => {
+                const div = document.createElement("div");
+                div.className="verse";
+
+                const vnum = document.createElement("span");
+                vnum.className="vnum";
+                vnum.textContent = verse.verse;
+
+                const text = document.createElement("span");
+                text.textContent = " " + verse.text.trim(); 
+
+                div.appendChild(vnum);
+                div.appendChild(text);
+                versesDiv.appendChild(div);
+            });
+            
+            const reference = document.createElement("p");
+            reference.innerHTML = `<em>${data.reference} (${translation.toUpperCase()})</em>`;
+            versesDiv.appendChild(reference);
+        }
+
+    } catch(err) {
+        versesDiv.innerHTML = `<strong>Error:</strong> Failed to load passage for ${translation}. Details: ${err.message}`;
+    }
+}
 
   // Expose loadPassage globally
   window.loadPassage = loadPassage;
@@ -224,3 +270,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
