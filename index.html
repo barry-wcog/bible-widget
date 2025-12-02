@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <title>Bible Passage Viewer</title>
 <style>
-  body { font-family: Arial, sans-serif; padding: 15px; margin: 0; background: #f9f9f9; }
-  h2 { margin-top: 0; font-size: 20px; }
-  #controls { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,0.2); margin-bottom: 15px; }
-  label { font-weight: bold; margin-right: 5px; }
-  select, button { margin-top: 8px; padding: 6px; font-size: 14px; }
-  #verses { line-height: 1.5; }
-  .verse { margin-bottom: 6px; }
-  .vnum { font-weight: bold; margin-right: 4px; }
-  @media(max-width:600px){
-    #controls { display:flex; flex-direction:column; }
-    select, button { width: 100%; margin-top:6px; }
-  }
+  body { font-family: Arial, sans-serif; padding: 15px; margin: 0; background: #f9f9f9; }
+  h2 { margin-top: 0; font-size: 20px; }
+  #controls { background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 0 4px rgba(0,0,0,0.2); margin-bottom: 15px; }
+  label { font-weight: bold; margin-right: 5px; }
+  select, button { margin-top: 8px; padding: 6px; font-size: 14px; }
+  #verses { line-height: 1.5; }
+  .verse { margin-bottom: 6px; }
+  .vnum { font-weight: bold; margin-right: 4px; }
+  @media(max-width:600px){
+    #controls { display:flex; flex-direction:column; }
+    select, button { width: 100%; margin-top:6px; }
+  }
 </style>
 </head>
 
@@ -24,22 +24,22 @@
 <h2>Bible Passage Viewer</h2>
 
 <div id="controls">
-  <label>Translation:</label>
-  <select id="translation">
-    <option value="BSB">BSB – Berean Standard Bible</option>
-    <option value="KJV">KJV – King James Version</option>
-    <option value="WEB">WEB – World English Bible</option>
-  </select>
+  <label>Translation:</label>
+  <select id="translation">
+    <option value="BSB">BSB – Berean Standard Bible</option>
+    <option value="KJV">KJV – King James Version</option>
+    <option value="WEB">WEB – World English Bible</option>
+  </select>
 
-  <br>
+  <br>
 
-  <label>Book:</label>
-  <select id="book"></select>
+  <label>Book:</label>
+  <select id="book"></select>
 
-  <label>Chapter:</label>
-  <select id="chapter"></select>
+  <label>Chapter:</label>
+  <select id="chapter"></select>
 
-  <button onclick="loadPassage()">Load</button>
+  <button onclick="loadPassage()">Load</button>
 </div>
 
 <div id="verses">Loading John 3…</div>
@@ -47,167 +47,168 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-  const BOOKS = {
-    "Genesis": { code: "GEN", chapters: 50 },
-    "Exodus": { code: "EXO", chapters: 40 },
-    "Leviticus": { code: "LEV", chapters: 27 },
-    "Numbers": { code: "NUM", chapters: 36 },
-    "Deuteronomy": { code: "DEU", chapters: 34 },
-    "Joshua": { code: "JOS", chapters: 24 },
-    "Judges": { code: "JDG", chapters: 21 },
-    "Ruth": { code: "RUT", chapters: 4 },
-    "1 Samuel": { code: "1SA", chapters: 31 },
-    "2 Samuel": { code: "2SA", chapters: 24 },
-    "1 Kings": { code: "1KI", chapters: 22 },
-    "2 Kings": { code: "2KI", chapters: 25 },
-    "1 Chronicles": { code: "1CH", chapters: 29 },
-    "2 Chronicles": { code: "2CH", chapters: 36 },
-    "Ezra": { code: "EZR", chapters: 10 },
-    "Nehemiah": { code: "NEH", chapters: 13 },
-    "Esther": { code: "EST", chapters: 10 },
-    "Job": { code: "JOB", chapters: 42 },
-    "Psalms": { code: "PSA", chapters: 150 },
-    "Proverbs": { code: "PRO", chapters: 31 },
-    "Ecclesiastes": { code: "ECC", chapters: 12 },
-    "Song of Solomon": { code: "SNG", chapters: 8 },
-    "Isaiah": { code: "ISA", chapters: 66 },
-    "Jeremiah": { code: "JER", chapters: 52 },
-    "Lamentations": { code: "LAM", chapters: 5 },
-    "Ezekiel": { code: "EZK", chapters: 48 },
-    "Daniel": { code: "DAN", chapters: 12 },
-    "Hosea": { code: "HOS", chapters: 14 },
-    "Joel": { code: "JOL", chapters: 3 },
-    "Amos": { code: "AMO", chapters: 9 },
-    "Obadiah": { code: "OBA", chapters: 1 },
-    "Jonah": { code: "JON", chapters: 4 },
-    "Micah": { code: "MIC", chapters: 7 },
-    "Nahum": { code: "NAM", chapters: 3 },
-    "Habakkuk": { code: "HAB", chapters: 3 },
-    "Zephaniah": { code: "ZEP", chapters: 3 },
-    "Haggai": { code: "HAG", chapters: 2 },
-    "Zechariah": { code: "ZEC", chapters: 14 },
-    "Malachi": { code: "MAL", chapters: 4 },
-    "Matthew": { code: "MAT", chapters: 28 },
-    "Mark": { code: "MRK", chapters: 16 },
-    "Luke": { code: "LUK", chapters: 24 },
-    "John": { code: "JHN", chapters: 21 },
-    "Acts": { code: "ACT", chapters: 28 },
-    "Romans": { code: "ROM", chapters: 16 },
-    "1 Corinthians": { code: "1CO", chapters: 16 },
-    "2 Corinthians": { code: "2CO", chapters: 13 },
-    "Galatians": { code: "GAL", chapters: 6 },
-    "Ephesians": { code: "EPH", chapters: 6 },
-    "Philippians": { code: "PHP", chapters: 4 },
-    "Colossians": { code: "COL", chapters: 4 },
-    "1 Thessalonians": { code: "1TH", chapters: 5 },
-    "2 Thessalonians": { code: "2TH", chapters: 3 },
-    "1 Timothy": { code: "1TI", chapters: 6 },
-    "2 Timothy": { code: "2TI", chapters: 4 },
-    "Titus": { code: "TIT", chapters: 3 },
-    "Philemon": { code: "PHM", chapters: 1 },
-    "Hebrews": { code: "HEB", chapters: 13 },
-    "James": { code: "JAS", chapters: 5 },
-    "1 Peter": { code: "1PE", chapters: 5 },
-    "2 Peter": { code: "2PE", chapters: 3 },
-    "1 John": { code: "1JN", chapters: 5 },
-    "2 John": { code: "2JN", chapters: 1 },
-    "3 John": { code: "3JN", chapters: 1 },
-    "Jude": { code: "JUD", chapters: 1 },
-    "Revelation": { code: "REV", chapters: 22 }
-  };
+  const BOOKS = {
+    "Genesis": { code: "GEN", chapters: 50 },
+    "Exodus": { code: "EXO", chapters: 40 },
+    "Leviticus": { code: "LEV", chapters: 27 },
+    "Numbers": { code: "NUM", chapters: 36 },
+    "Deuteronomy": { code: "DEU", chapters: 34 },
+    "Joshua": { code: "JOS", chapters: 24 },
+    "Judges": { code: "JDG", chapters: 21 },
+    "Ruth": { code: "RUT", chapters: 4 },
+    "1 Samuel": { code: "1SA", chapters: 31 },
+    "2 Samuel": { code: "2SA", chapters: 24 },
+    "1 Kings": { code: "1KI", chapters: 22 },
+    "2 Kings": { code: "2KI", chapters: 25 },
+    "1 Chronicles": { code: "1CH", chapters: 29 },
+    "2 Chronicles": { code: "2CH", chapters: 36 },
+    "Ezra": { code: "EZR", chapters: 10 },
+    "Nehemiah": { code: "NEH", chapters: 13 },
+    "Esther": { code: "EST", chapters: 10 },
+    "Job": { code: "JOB", chapters: 42 },
+    "Psalms": { code: "PSA", chapters: 150 },
+    "Proverbs": { code: "PRO", chapters: 31 },
+    "Ecclesiastes": { code: "ECC", chapters: 12 },
+    "Song of Solomon": { code: "SNG", chapters: 8 },
+    "Isaiah": { code: "ISA", chapters: 66 },
+    "Jeremiah": { code: "JER", chapters: 52 },
+    "Lamentations": { code: "LAM", chapters: 5 },
+    "Ezekiel": { code: "EZK", chapters: 48 },
+    "Daniel": { code: "DAN", chapters: 12 },
+    "Hosea": { code: "HOS", chapters: 14 },
+    "Joel": { code: "JOL", chapters: 3 },
+    "Amos": { code: "AMO", chapters: 9 },
+    "Obadiah": { code: "OBA", chapters: 1 },
+    "Jonah": { code: "JON", chapters: 4 },
+    "Micah": { code: "MIC", chapters: 7 },
+    "Nahum": { code: "NAM", chapters: 3 },
+    "Habakkuk": { code: "HAB", chapters: 3 },
+    "Zephaniah": { code: "ZEP", chapters: 3 },
+    "Haggai": { code: "HAG", chapters: 2 },
+    "Zechariah": { code: "ZEC", chapters: 14 },
+    "Malachi": { code: "MAL", chapters: 4 },
+    "Matthew": { code: "MAT", chapters: 28 },
+    "Mark": { code: "MRK", chapters: 16 },
+    "Luke": { code: "LUK", chapters: 24 },
+    "John": { code: "JHN", chapters: 21 },
+    "Acts": { code: "ACT", chapters: 28 },
+    "Romans": { code: "ROM", chapters: 16 },
+    "1 Corinthians": { code: "1CO", chapters: 16 },
+    "2 Corinthians": { code: "2CO", chapters: 13 },
+    "Galatians": { code: "GAL", chapters: 6 },
+    "Ephesians": { code: "EPH", chapters: 6 },
+    "Philippians": { code: "PHP", chapters: 4 },
+    "Colossians": { code: "COL", chapters: 4 },
+    "1 Thessalonians": { code: "1TH", chapters: 5 },
+    "2 Thessalonians": { code: "2TH", chapters: 3 },
+    "1 Timothy": { code: "1TI", chapters: 6 },
+    "2 Timothy": { code: "2TI", chapters: 4 },
+    "Titus": { code: "TIT", chapters: 3 },
+    "Philemon": { code: "PHM", chapters: 1 },
+    "Hebrews": { code: "HEB", chapters: 13 },
+    "James": { code: "JAS", chapters: 5 },
+    "1 Peter": { code: "1PE", chapters: 5 },
+    "2 Peter": { code: "2PE", chapters: 3 },
+    "1 John": { code: "1JN", chapters: 5 },
+    "2 John": { code: "2JN", chapters: 1 },
+    "3 John": { code: "3JN", chapters: 1 },
+    "Jude": { code: "JUD", chapters: 1 },
+    "Revelation": { code: "REV", chapters: 22 }
+  };
 
-  const bookSelect = document.getElementById("book");
-  const chapterSelect = document.getElementById("chapter");
+  const bookSelect = document.getElementById("book");
+  const chapterSelect = document.getElementById("chapter");
 
-  // Populate Book dropdown
-  Object.keys(BOOKS).forEach(bookName => {
-    const option = document.createElement("option");
-    option.value = BOOKS[bookName].code;
-    option.textContent = bookName;
-    bookSelect.appendChild(option);
-  });
+  // Populate Book dropdown
+  Object.keys(BOOKS).forEach(bookName => {
+    const option = document.createElement("option");
+    option.value = BOOKS[bookName].code;
+    option.textContent = bookName;
+    bookSelect.appendChild(option);
+  });
 
-  // Set default book to John
-  bookSelect.value = BOOKS["John"].code;
+  // Set default book to John
+  bookSelect.value = BOOKS["John"].code;
 
-  // Populate Chapter dropdown based on selected book
-  function populateChapters() {
-    const bookName = bookSelect.options[bookSelect.selectedIndex].text;
-    const maxCh = BOOKS[bookName].chapters;
-    chapterSelect.innerHTML = "";
-    for(let i=1;i<=maxCh;i++){
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = i;
-      chapterSelect.appendChild(opt);
-    }
-    // Default to chapter 3 if John
-    if(bookName === "John") chapterSelect.value = 3;
-  }
+  // Populate Chapter dropdown based on selected book
+  function populateChapters() {
+    const bookName = bookSelect.options[bookSelect.selectedIndex].text;
+    const maxCh = BOOKS[bookName].chapters;
+    chapterSelect.innerHTML = "";
+    for(let i=1;i<=maxCh;i++){
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = i;
+      chapterSelect.appendChild(opt);
+    }
+    // Default to chapter 3 if John
+    if(bookName === "John") chapterSelect.value = 3;
+  }
 
-  populateChapters();
-  bookSelect.addEventListener("change", populateChapters);
+  populateChapters();
+  bookSelect.addEventListener("change", populateChapters);
 
-  function flattenContent(arr) {
-    return arr.map(item => {
-      if(typeof item==="string") return item;
-      if(typeof item==="object"){
-        if(item.text) return item.text;
-        if(item.content) return flattenContent(item.content).join("");
-      }
-      return "";
-    }).join(" ");
-  }
+  function flattenContent(arr) {
+    return arr.map(item => {
+      if(typeof item==="string") return item;
+      if(typeof item==="object"){
+        if(item.text) return item.text;
+        if(item.content) return flattenContent(item.content).join("");
+      }
+      return "";
+    }).join(" ");
+  }
 
-  async function loadPassage() {
-    //const translation = document.getElementById("translation").value;
-    const translation = document.getElementById("translation").value.toLowerCase();
-    const bookCode = bookSelect.value;
-    const chapter = chapterSelect.value;
-    const versesDiv = document.getElementById("verses");
+  async function loadPassage() {
+    // FIX: Convert the translation value to lowercase before using it in the URL.
+    const translation = document.getElementById("translation").value.toLowerCase();
+    
+    const bookCode = bookSelect.value;
+    const chapter = chapterSelect.value;
+    const versesDiv = document.getElementById("verses");
 
-    const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://bible.helloao.org/api/${translation}/${bookCode}/${chapter}.json`)}`;
+    // Using AllOrigins proxy to avoid CORS issues when fetching the Bible API
+    const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://bible.helloao.org/api/${translation}/${bookCode}/${chapter}.json`)}`;
 
-    versesDiv.innerHTML = "<em>Loading…</em>";
+    versesDiv.innerHTML = "<em>Loading…</em>";
 
-    try {
-      const response = await fetch(apiUrl);
-      if(!response.ok) throw new Error("Passage not found.");
+    try {
+      const response = await fetch(apiUrl);
+      if(!response.ok) throw new Error("Passage not found or API error.");
 
-      const data = await response.json();
-      versesDiv.innerHTML = "";
+      const data = await response.json();
+      versesDiv.innerHTML = "";
 
-      data.chapter.content.forEach(entry => {
-        if(entry.type==="verse"){
-          const div = document.createElement("div");
-          div.className="verse";
+      data.chapter.content.forEach(entry => {
+        if(entry.type==="verse"){
+          const div = document.createElement("div");
+          div.className="verse";
 
-          const vnum = document.createElement("span");
-          vnum.className="vnum";
-          vnum.textContent = entry.number;
+          const vnum = document.createElement("span");
+          vnum.className="vnum";
+          vnum.textContent = entry.number;
 
-          const text = document.createElement("span");
-          text.textContent = " "+flattenContent(entry.content);
+          const text = document.createElement("span");
+          text.textContent = " "+flattenContent(entry.content);
 
-          div.appendChild(vnum);
-          div.appendChild(text);
-          versesDiv.appendChild(div);
-        }
-      });
-    } catch(err) {
-      versesDiv.innerHTML = "<strong>Error:</strong> "+err.message;
-    }
-  }
+          div.appendChild(vnum);
+          div.appendChild(text);
+          versesDiv.appendChild(div);
+        }
+      });
+    } catch(err) {
+      versesDiv.innerHTML = `<strong>Error:</strong> Failed to load passage. Details: ${err.message}`;
+    }
+  }
 
-  // Expose loadPassage globally
-  window.loadPassage = loadPassage;
+  // Expose loadPassage globally
+  window.loadPassage = loadPassage;
 
-  // Auto-load John 3
-  loadPassage();
+  // Auto-load default passage (John 3)
+  loadPassage();
 
 });
 </script>
 
 </body>
 </html>
-
