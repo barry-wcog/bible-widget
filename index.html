@@ -160,7 +160,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   async function loadPassage() {
-    const translation = document.getElementById("translation").value;
+    //const translation = document.getElementById("translation").value;
+    const translation = document.getElementById("translation").value.toLowerCase();
     const bookCode = bookSelect.value;
     const chapter = chapterSelect.value;
     const versesDiv = document.getElementById("verses");
@@ -209,3 +210,4 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
