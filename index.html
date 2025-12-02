@@ -26,9 +26,9 @@
 <div id="controls">
   <label>Translation:</label>
   <select id="translation">
-    <option value="BSB">BSB – Berean Standard Bible</option>
-    <option value="KJV">KJV – King James Version</option>
-    <option value="WEB">WEB – World English Bible</option>
+        <option value="asv">ASV – American Standard Version</option>
+    <option value="kjv">KJV – King James Version</option>
+    <option value="web">WEB – World English Bible</option>
   </select>
 
   <br>
@@ -122,18 +122,21 @@ document.addEventListener("DOMContentLoaded", function() {
   // Populate Book dropdown
   Object.keys(BOOKS).forEach(bookName => {
     const option = document.createElement("option");
-    option.value = BOOKS[bookName].code;
+    option.value = bookName; // Use full book name for new API URL construction
     option.textContent = bookName;
     bookSelect.appendChild(option);
   });
 
   // Set default book to John
-  bookSelect.value = BOOKS["John"].code;
+  bookSelect.value = "John"; // Set value using book name
 
   // Populate Chapter dropdown based on selected book
   function populateChapters() {
-    const bookName = bookSelect.options[bookSelect.selectedIndex].text;
-    const maxCh = BOOKS[bookName].chapters;
+    const bookName = bookSelect.value;
+    const bookEntry = Object.values(BOOKS).find(b => b.code === bookName) || BOOKS[bookName];
+    
+    const maxCh = bookEntry ? bookEntry.chapters : 1; 
+
     chapterSelect.innerHTML = "";
     for(let i=1;i<=maxCh;i++){
       const opt = document.createElement("option");
@@ -148,56 +151,61 @@ document.addEventListener("DOMContentLoaded", function() {
   populateChapters();
   bookSelect.addEventListener("change", populateChapters);
 
-  function flattenContent(arr) {
-    return arr.map(item => {
-      if(typeof item==="string") return item;
-      if(typeof item==="object"){
-        if(item.text) return item.text;
-        if(item.content) return flattenContent(item.content).join("");
-      }
-      return "";
-    }).join(" ");
-  }
 
   async function loadPassage() {
-    // FIX: Convert the translation value to lowercase before using it in the URL.
-    const translation = document.getElementById("translation");
-    
-    const bookCode = bookSelect.value;
+    const translation = document.getElementById("translation").value; // 'kjv', 'web', 'asv'
+    const bookName = bookSelect.value;
     const chapter = chapterSelect.value;
     const versesDiv = document.getElementById("verses");
 
-    // Using AllOrigins proxy to avoid CORS issues when fetching the Bible API
-    const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://bible.helloao.org/api/${translation}/${bookCode}/${chapter}.json`)}`;
-
+    // --- NEW API URL CONSTRUCTION (bible-api.com) ---
+    // Uses passage format: John 3
+    const passage = `${bookName} ${chapter}`;
+    const apiUrl = `https://bible-api.com/${encodeURIComponent(passage)}?translation=${translation}`;
+    
     versesDiv.innerHTML = "<em>Loading…</em>";
 
     try {
       const response = await fetch(apiUrl);
-      if(!response.ok) throw new Error("Passage not found or API error.");
+      if(!response.ok) {
+        // If the API returns a 404 or other error, its error response is not always JSON.
+        // We'll read it as text to find the error message.
+        const errorText = await response.text();
+        throw new Error(`Passage not found or API error: ${response.status} - ${errorText.substring(0, 50)}...`);
+    }
 
       const data = await response.json();
       versesDiv.innerHTML = "";
+      
+      // Check if API returned an error message within the JSON structure
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      data.chapter.content.forEach(entry => {
-        if(entry.type==="verse"){
+      data.verses.forEach(verse => {
           const div = document.createElement("div");
           div.className="verse";
 
           const vnum = document.createElement("span");
           vnum.className="vnum";
-          vnum.textContent = entry.number;
+          vnum.textContent = verse.verse;
 
           const text = document.createElement("span");
-          text.textContent = " "+flattenContent(entry.content);
+          // Remove leading space from text if present
+          text.textContent = " " + verse.text.trim(); 
 
           div.appendChild(vnum);
           div.appendChild(text);
           versesDiv.appendChild(div);
-        }
       });
+      
+      // Add the reference (e.g., John 3:1-10 KJV)
+      const reference = document.createElement("p");
+      reference.innerHTML = `<em>${data.reference} (${translation.toUpperCase()})</em>`;
+      versesDiv.appendChild(reference);
+      
     } catch(err) {
-      versesDiv.innerHTML = `<strong>Error:</strong> Failed to load passage. Details: ${err.message}`;
+      versesDiv.innerHTML = `<strong>Error:</strong> Failed to load passage. Please check the Book/Chapter selection. Details: ${err.message}`;
     }
   }
 
@@ -206,10 +214,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Auto-load default passage (John 3)
   loadPassage();
+  
+  // Attach loadPassage to translation and chapter changes for better UX
+  document.getElementById("translation").addEventListener("change", loadPassage);
+  chapterSelect.addEventListener("change", loadPassage);
 
 });
 </script>
 
 </body>
 </html>
-
